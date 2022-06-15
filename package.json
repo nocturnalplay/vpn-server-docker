@@ -17,12 +17,17 @@
   },
   "keywords": [],
   "author": "",
+  "bin": {
+    "ysage": "./container/index.js"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/nocturnalplay/vpn-server-docker/issues"
   },
   "homepage": "https://github.com/nocturnalplay/vpn-server-docker#readme",
   "dependencies": {
+    "cli-spinners": "^2.6.1",
+    "commander": "^9.3.0",
     "cookie": "^0.5.0",
     "cors": "^2.8.5",
     "dotenv": "^16.0.1",

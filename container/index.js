@@ -1,82 +1,90 @@
 #!/usr/bin/env node
 
-import commander from "commander";
-import chalk from "chalk";
-import { CreateDockerFile } from "./features/container.js";
-import clr from "./features/color.js";
-import { banner, ConBanner } from "./features/banner.js";
-import { spawn } from "child_process";
-import { FilteredPort } from "./features/portfilter.js";
-
-commander
-  .version(chalk.green("youngstorage 1.0"), "-v, --version")
-  .usage(
-    "[OPTIONS][-h : help],[-v : version],[-u <value> : username],[-p <value> : password]"
-  )
-  .option("-u, --username <value>", "name of the user")
-  .option("-p, --password <value>", "user password")
-  .option("-q, --quick", "for skip the banner")
-  .parse(process.argv);
-
-const { username, password, quick } = commander.opts();
-const ListenPort = FilteredPort();
-const portstate = ListenPort.filter((a) => a === port);
+const commander = require("commander");
+const chalk = require("chalk");
+const fs = require("fs");
+const clr = require("./features/color.js");
+const { banner, ConBanner } = require("./features/banner.js");
+const { fork, spawn } = require("child_process");
 let nonError = true;
-//clear the console
-console.clear();
 
-//show banner
-if (!quick) {
-  banner();
-}
+//Global variable
+let username = "",
+  password = "";
 
-//creating Dockerfile for the ubuntu container
-if (username && password) {
-  CreateDockerFile(username, password);
-  //-------------------------------------------------------------------------------
-  DockerBuildHappening(username);
-  //-------------------------------------------------------------------------------
-} else {
-  console.log(clr.Error("[*] required username and port"));
-  console.log(clr.Info("[*] for help use -h --help"));
+process.on("message", (data) => {
+  console.log("data check:", data);
+  //assign username and password to the global veriable
+  username = data.username;
+  password = data.password;
+  //verify username and password if exist
+  if (username && password) {
+    try {
+      //docker ysage image write process starts
+      process.send(banner());
+      //Dockerfile creation process then Manager will do all the stuff
+      CreateDockerFile(username, password);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+});
+
+function CreateDockerFile(username, password) {
+  const Dockerimage = `FROM ubuntu:latest
+  RUN apt update
+  RUN apt install openssh-server nano htop sudo figlet lolcat -y
+  RUN service ssh start
+  RUN echo 'root:admin' | chpasswd
+  RUN echo "clear" >> /etc/bash.bashrc
+  RUN echo "figlet -t -c youngstorage | lolcat" >> /etc/bash.bashrc
+  RUN echo "echo ''" >> /etc/bash.bashrc
+  RUN sudo adduser ${username} --gecos "" --disabled-password
+  RUN echo "${username}:${password}" | sudo chpasswd
+  RUN usermod -aG sudo ${username}
+  RUN cd /home/${username} && echo "PS1='💻️ (\\[\\033[1;36m\\]\\u@\\h\\[\\033[0m\\]) \\[\\033[1;34m\\]\\w\\[\\033[0;35m\\] \\[\\033[1;36m\\]# \\[\\033[0m\\]'" >> .bashrc
+  CMD ["/usr/sbin/sshd","-D"]
+  `;
+
+  try {
+    fs.writeFileSync("./container/Dockerfile", Dockerimage);
+    process.send(clr.Success("[*]Dockerfile have been created successfully"));
+    //After created DockerFile Manager will do all stuff
+    DockerManager(username);
+  } catch (error) {
+    throw clr.Error(error.message);
+  }
 }
 
 //docker build function
-function DockerBuildHappening(username) {
-  //start loading spinner
-  const load = clr.Spinner("aesthetic", "building the Docker container");
-
+function DockerManager(username) {
+  process.send(clr.Start("[*]Docker build started..."));
   //docker build start
   const build = spawn(`docker`, [
     "build",
     "-t",
     `${username}:latest`,
-    `${__dirname}`
+    `./container/.`
   ]);
 
   //Docker building reliable output
   build.stdout.on("data", (msg) => {
-    process.stdout.clearLine();
     console.log(clr.Info(`${msg}`));
   });
-
+  build.stderr.on("data", (msg) => process.exit(msg));
   //spawn executing after completion
   build.stdout.on("end", () => {
-    process.stdout.clearLine();
-    clearInterval(load);
-    console.log(clr.Success("[*]DockerFile build successfully"));
+    process.send(clr.Success("[*]DockerFile build successfully"));
     //------------------------------
     //run the builted Docker container
-    DockerRunHappening(username);
+    DockerRun(username);
     //------------------------------
   });
 }
 
 //after completting the docker build this running the builted container will happen
-function DockerRunHappening(username) {
-  console.log(clr.Success("[*]Docker Image Start running"));
-  //start loading spinner
-  const load = clr.Spinner("aesthetic", "Docker running the builted container");
+function DockerRun(username) {
+  process.send(clr.Info("[*]Docker Image Start running"));
 
   //docker run start
   const build = spawn(`docker`, [
@@ -88,58 +96,51 @@ function DockerRunHappening(username) {
     "-d",
     "-v",
     `${username}:/home/${username}`,
+    "--network",
+    "docker-vpn",
     `${username}`
   ]);
 
   //Docker run reliable output
   build.stdout.on("data", (msg) => {
-    process.stdout.clearLine();
-    console.log(clr.Info(`${msg}`));
+    process.send(clr.Info(`[*]Container Created\n${msg}`));
     nonError = true;
   });
 
   //while Docker running if Error happens
   build.stderr.on("data", (msg) => {
-    process.stdout.clearLine();
-    console.log(clr.Error(`[*] ${msg}`));
+    process.send(clr.Error(`[*] ${msg}`));
     nonError = false;
     DockerRemoveImage(username);
   });
   //spawn executing after completion
   build.stdout.on("end", () => {
-    process.stdout.clearLine();
-    clearInterval(load);
     if (nonError) {
-      console.log(clr.Success("[*]Docker Image successfully completed"));
-      console.log(clr.Success("[*]now ready to use"));
       //finally created banner and ssh connection info
-      ConBanner(username, password);
+      process.send(ConBanner(username, password));
+      process.exit();
     }
   });
 }
 
 //Docker image exist error for removing that
 function DockerRemoveImage(username) {
-  //start loading spinner
-  const load = clr.Spinner("aesthetic", "Removing existing Docker Image");
-
   //docker build start
   const build = spawn(`docker`, ["rm", "-f", `${username}`]);
 
   //Docker building reliable output
   build.stdout.on("data", (msg) => {
-    process.stdout.clearLine();
-    console.log(clr.Info(`[*]${msg}`));
+    process.send(clr.Info(`[*]${msg} \r\r[*]Container Removed`));
   });
 
   //spawn executing after completion
   build.stdout.on("end", () => {
-    process.stdout.clearLine();
-    clearInterval(load);
-    console.log(clr.Success("[*]Docker Image Removed Successfully"));
-    //------------------------------
     //run the builted Docker container
-    DockerRunHappening(username);
+    DockerRun(username);
     //------------------------------
   });
 }
+
+process.on("exit", (msg) => {
+  process.send("[Process End]:", msg);
+});

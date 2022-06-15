@@ -1,5 +1,5 @@
-import chalk from "chalk";
-import cliSpinners from "cli-spinners";
+const chalk = require("chalk");
+const cliSpinners = require("cli-spinners");
 
 const Error = (txt) => chalk.red(txt);
 const Success = (txt) => chalk.green.bold(txt);
@@ -24,4 +24,4 @@ const Spinner = (type, txt) => {
   }, spinnerinterval + 200);
 };
 
-export default { Error, Success, Start, Info, Banner, Spinner, Magenta };
+module.exports = { Error, Success, Start, Info, Banner, Spinner, Magenta };
