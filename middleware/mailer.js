@@ -11,13 +11,13 @@ async function mailer(user, otp) {
       ciphers: "SSLv3"
     },
     auth: {
-      user: "ccpsslmc@outlook.com",
-      pass: "ccps@salemcity"
+      user: `${process.env.EMAIL}`,
+      pass: `${process.env.EPASS}`
     }
   });
   // E-mail formate
   let mailOptions = {
-    from: "ccpsslmc@outlook.com",
+    from: `${process.env.EMAIL}`,
     to: email,
     subject: "Verify Your Login",
     text: "E-mail Authentication",
