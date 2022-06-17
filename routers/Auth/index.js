@@ -4,10 +4,21 @@ const Signin = require("../../api/signin");
 const Signup = require("../../api/signup");
 const otpverify = require("../../api/otpverify");
 const resendotp = require("../../api/resendotp");
+const userCredential = require("../../models/usercrdentialmodel");
 
 // Home page route.
-router.get("/", (req, res) => {
-  res.json({ success: true, msg: "If u can Break the Authentication" });
+router.get("/", async (req, res) => {
+  const token = req.headers.authorization;
+  try {
+    const verify = await userCredential.findOne({ token });
+    if (verify) {
+      res.status(200).send({ success: true, msg: "verified user" });
+    } else {
+      throw new Error("Token not valied");
+    }
+  } catch (error) {
+    res.status(400).send({ success: false, msg: error.message });
+  }
 });
 router.post("/signin", Signin);
 router.post("/signup", Signup);

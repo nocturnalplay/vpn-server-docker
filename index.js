@@ -23,6 +23,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 //API routing setup
+app.get("/", (req, res) => {
+  res.end("hello youngstorage");
+});
 app.use("/auth", Auth); //for user auth
 app.use("/user", Connect);
 

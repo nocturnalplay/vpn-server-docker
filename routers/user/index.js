@@ -9,8 +9,14 @@ router.get("/vpnqr", async (req, res) => {
   const validuser = await userCredential.findOne({ token });
   if (validuser) {
     const vuser = await vpnuser.findOne({ userid: validuser.userid });
-    res.sendFile(`${process.cwd()}/${vuser.vpn_qr}`);
-    // res.send("user connect");
+    if (vuser) {
+      res.sendFile(`${process.cwd()}/${vuser.vpn_qr}`, {
+        headers: { "Content-Type": "image/png" }
+      });
+      // res.send("user connect");
+    } else {
+      res.status(400).send({ success: false, msg: "VPN not created yet" });
+    }
   } else {
     res.status(401).send({ success: false, msg: "Unauthorized" });
   }
@@ -21,8 +27,12 @@ router.get("/vpnwg", async (req, res) => {
   const validuser = await userCredential.findOne({ token });
   if (validuser) {
     const vuser = await vpnuser.findOne({ userid: validuser.userid });
-    res.download(`${process.cwd()}/${vuser.vpn_wg}`);
-    // res.send("user connect");
+    if (vuser) {
+      res.download(`${process.cwd()}/${vuser.vpn_wg}`);
+      // res.send("user connect");
+    } else {
+      res.status(400).send({ success: false, msg: "VPN not created yet" });
+    }
   } else {
     res.status(401).send({ success: false, msg: "Unauthorized" });
   }

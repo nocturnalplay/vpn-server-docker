@@ -1,6 +1,5 @@
 const mongoose = require("mongoose");
 const usercridentials = require("../models/usercrdentialmodel");
-const { serialize } = require("cookie");
 
 const { createHmac } = require("crypto");
 const secret = "%^&*";
@@ -28,13 +27,10 @@ async function Handler(req, res) {
               { userid: mongoose.Types.ObjectId(id) },
               { otp: null, active: true, token }
             );
-            res.setHeader(
-              "Set-Cookie",
-              serialize("token", token, { path: "/" })
-            );
             res.status(200).send({
               success: true,
-              msg: "user successfully verified"
+              msg: "user successfully verified",
+              token
             });
           } else {
             throw new Error("Invalied OTP");
