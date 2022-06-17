@@ -48,7 +48,7 @@ function CreateDockerFile(username, password) {
 
   try {
     fs.writeFileSync("./container/Dockerfile", Dockerimage);
-    process.send(clr.Success("[*]Dockerfile have been created successfully"));
+    process.send("[*]Dockerfile have been created successfully");
     //After created DockerFile Manager will do all stuff
     DockerManager(username);
   } catch (error) {
@@ -58,7 +58,7 @@ function CreateDockerFile(username, password) {
 
 //docker build function
 function DockerManager(username) {
-  process.send(clr.Start("[*]Docker build started..."));
+  process.send("[*]Docker build started...");
   //docker build start
   const build = spawn(`docker`, [
     "build",
@@ -69,12 +69,12 @@ function DockerManager(username) {
 
   //Docker building reliable output
   build.stdout.on("data", (msg) => {
-    console.log(clr.Info(`${msg}`));
+    console.log(`${msg}`);
   });
   build.stderr.on("data", (msg) => process.exit(msg));
   //spawn executing after completion
   build.stdout.on("end", () => {
-    process.send(clr.Success("[*]DockerFile build successfully"));
+    process.send("[*]DockerFile build successfully");
     //------------------------------
     //run the builted Docker container
     DockerRun(username);
@@ -84,7 +84,7 @@ function DockerManager(username) {
 
 //after completting the docker build this running the builted container will happen
 function DockerRun(username) {
-  process.send(clr.Info("[*]Docker Image Start running"));
+  process.send("[*]Docker Image Start running");
 
   //docker run start
   const build = spawn(`docker`, [
@@ -103,13 +103,13 @@ function DockerRun(username) {
 
   //Docker run reliable output
   build.stdout.on("data", (msg) => {
-    process.send(clr.Info(`[*]Container Created\n${msg}`));
+    process.send(`[*]Container Created ${msg}`);
     nonError = true;
   });
 
   //while Docker running if Error happens
   build.stderr.on("data", (msg) => {
-    process.send(clr.Error(`[*] ${msg}`));
+    process.send(`[*] ${msg}`);
     nonError = false;
     DockerRemoveImage(username);
   });
@@ -130,7 +130,7 @@ function DockerRemoveImage(username) {
 
   //Docker building reliable output
   build.stdout.on("data", (msg) => {
-    process.send(clr.Info(`[*]${msg} \r\r[*]Container Removed`));
+    process.send(`[*]${msg} \r\r[*]Container Removed`);
   });
 
   //spawn executing after completion
@@ -140,7 +140,3 @@ function DockerRemoveImage(username) {
     //------------------------------
   });
 }
-
-process.on("exit", (msg) => {
-  process.send("[Process End]:", msg);
-});

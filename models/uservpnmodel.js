@@ -1,37 +1,48 @@
 const mongoose = require("mongoose");
 
-const usevpn = mongoose.Schema({
+const uservpn = mongoose.Schema({
   userid: {
     type: mongoose.Types.ObjectId,
     trim: true,
     required: true,
     unique: true
   },
-  otp: {
-    type: Number,
-    default: null
+  sshusername: {
+    type: String,
+    trim: true,
+    unique: true
   },
-  otpcreatedtime: {
+  sshpassword: {
+    type: String,
+    trim: true,
+    unique: true
+  },
+  createdtime: {
     type: String,
     trim: true
   },
-  active: {
-    type: Boolean,
-    default: false
-  },
-  token: {
+  user_ip: {
     type: String,
     trim: true,
-    default: null
+    unique: true
   },
-  roll: {
+  docker_ip: {
     type: String,
-    default: "VIEW",
     trim: true,
-    enum: ["VIEW", "ADMIN"]
+    unique: true
+  },
+  vpn_qr: {
+    type: String,
+    trim: true,
+    unique: true
+  },
+  vpn_wg: {
+    type: String,
+    trim: true,
+    unique: true
   }
 });
 
 mongoose.models = {};
-const usevpns = mongoose.model("usevpns", usevpn);
-module.exports = usevpns;
+const uservpns = mongoose.model("uservpns", uservpn);
+module.exports = uservpns;

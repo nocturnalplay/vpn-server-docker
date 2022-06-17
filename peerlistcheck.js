@@ -1,23 +1,21 @@
-const fs = require("fs");
-const { exec, execSync } = require("child_process");
+const { spawnSync, execSync } = require("child_process");
+const vpnuser = require("./models/uservpnmodel");
 
-const peer = fs.readFileSync("peer.txt");
-const peercount = peer
-  .toString()
-  .split("\n")
-  .filter((a) => a).length;
-
-const { spawn } = require("node:child_process");
-const ls = spawn("python3", ["alterpeer.py", peercount + 1]);
-
-ls.stdout.on("data", (data) => {
-  console.log(`stdout: ${data}`);
+process.on("message", async ({ count, userid }) => {
+  let pr = spawnSync("python3", ["alterpeer.py", count + 2]);
+  process.send(`[*]${pr.stdout.toString()}`);
+  Rebuild(count);
+  process.send("[*]update done !!");
+  process.exit();
 });
 
-ls.stderr.on("data", (data) => {
-  console.error(`stderr: ${data}`);
-});
-
-ls.on("close", (code) => {
-  console.log(`child process exited with code ${code}`);
-});
+function Rebuild(e) {
+  process.send("[*]VPN server updating userlist...");
+  let restartvpn = spawnSync("docker-compose", [
+    "up",
+    "-d",
+    "--force-recreate"
+  ]);
+  process.send(`[*][SUCCESS]${restartvpn.stdout.toString()}`);
+  process.send(`[*][OUTPUT]${restartvpn.stderr.toString()}`);
+}
