@@ -2,7 +2,7 @@ const { spawnSync, execSync } = require("child_process");
 const vpnuser = require("./models/uservpnmodel");
 
 process.on("message", async ({ count, userid }) => {
-  let pr = spawnSync("python3", ["alterpeer.py", count + 2]);
+  let pr = spawnSync("python3", ["alterpeer.py", count + 1]);
   process.send(`[*]${pr.stdout.toString()}`);
   Rebuild(count);
   process.send("[*]update done !!");

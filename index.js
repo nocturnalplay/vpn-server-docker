@@ -84,7 +84,7 @@ wss.on("connection", (ws, req) => {
           //On Thread close User docker set has been update to current use
           container.on("close", async (c) => {
             const docker_ip = execSync(
-              `docker inspect ${GetUser.username} | grep IPAddress | grep 10.0 | awk '{print $2}'`
+              `docker inspect ${GetUser.username} | grep IPAddress | grep 169.254 | awk '{print $2}'`
             )
               .toString()
               .split('"')
@@ -137,7 +137,7 @@ wss.on("connection", (ws, req) => {
                 vpn_user_count + 1
               }.conf`;
               const docker_ip = execSync(
-                `docker inspect ${GetUser.username} | grep IPAddress | grep 10.0 | awk '{print $2}'`
+                `docker inspect ${GetUser.username} | grep IPAddress | grep 169.254 | awk '{print $2}'`
               )
                 .toString()
                 .split('"')

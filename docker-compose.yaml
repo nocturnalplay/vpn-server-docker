@@ -12,10 +12,10 @@ services:
     - TZ=Europe/London
     - SERVERURL=auto
     - SERVERPORT=51820
-    - PEERS=2
+    - PEERS=1
     - PEERDNS=auto
-    - INTERNAL_SUBNET=10.0.0.0
-    - ALLOWEDIPS=10.0.3.0/24
+    - INTERNAL_SUBNET=172.16.0.0
+    - ALLOWEDIPS=169.254.0.0/32
     - PERSISTENT_KEEPALIVE=5
     volumes:
     - ./config:/config
@@ -31,7 +31,7 @@ services:
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: example
+      MONGO_INITDB_ROOT_PASSWORD: root123
       MONGO_INITDB_DATABASE: youngstorage
       MONGO_USERNAME: admin
       MONGO_PASSWORD: admin123

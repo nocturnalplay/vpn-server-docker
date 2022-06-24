@@ -3,7 +3,8 @@ const tokenfilter = (data) => {
   if (data) {
     const cookies = data.split(";");
     const token = cookies.map((a) => a.split("="));
-    const c = [].concat.apply([], token);
+    let c = [].concat.apply([], token);
+    c = c.map((a) => a.trim());
     const tk = c.indexOf("token");
     return c[tk + 1];
   }
