@@ -1,6 +1,22 @@
 const nodemailer = require("nodemailer");
 
-async function mailer(user, otp) {
+const otpmail = (email, username, otp) => ({
+  from: `${process.env.EMAIL}`,
+  to: email,
+  subject: "Verify Your Login",
+  text: "E-mail Authentication",
+  html: `<h1 style='text-transform: capitalize;'>welcome ${username}</h1><h2>Login OTP:${otp}</h2>`
+});
+
+const forgotpassword = (email, username, url) => ({
+  from: `${process.env.EMAIL}`,
+  to: email,
+  subject: "Change your password",
+  text: "E-mail Authentication",
+  html: `<h1 style='text-transform: capitalize;'>welcome ${username}</h1><h2>change your password</h2><span>${url}</span>`
+});
+
+async function mailer(user, data, event) {
   //admin verification for send email
   const { email, username } = user;
   let transporter = nodemailer.createTransport({
@@ -16,13 +32,13 @@ async function mailer(user, otp) {
     }
   });
   // E-mail formate
-  let mailOptions = {
-    from: `${process.env.EMAIL}`,
-    to: email,
-    subject: "Verify Your Login",
-    text: "E-mail Authentication",
-    html: `<h1 style='text-transform: capitalize;'>welcome ${username}</h1><h2>Login OTP:${otp}</h2>`
-  };
+  let mailOptions =
+    event === "otp"
+      ? otpmail(email, username, data)
+      : event === "password"
+      ? forgotpassword(email, username, data)
+      : "";
+  console.log(mailOptions);
   // send mail to the client
   transporter.sendMail(mailOptions, function (error, info) {
     if (error) {

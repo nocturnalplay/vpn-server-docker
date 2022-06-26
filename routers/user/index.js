@@ -4,6 +4,22 @@ const vpnuser = require("../../models/uservpnmodel");
 const userCredential = require("../../models/usercrdentialmodel");
 const tokenfilter = require("../../components/tokenfilter");
 
+router.get("/", async (req, res) => {
+  const token = tokenfilter(req.headers.cookie);
+  console.log(token);
+  const validuser = await userCredential.findOne({ token });
+  if (validuser) {
+    const vuser = await vpnuser.findOne({ userid: validuser.userid });
+    if (vuser) {
+      res.status(200).send({ success: true, msg: vuser });
+    } else {
+      res.status(400).send({ success: false, msg: "VPN not created yet" });
+    }
+  } else {
+    res.status(401).send({ success: false, msg: "Unauthorized" });
+  }
+});
+
 router.get("/vpnqr", async (req, res) => {
   const token = tokenfilter(req.headers.cookie);
   const validuser = await userCredential.findOne({ token });

@@ -18,7 +18,7 @@ const signin =async (req, res) => {
               { otp, otpcreatedtime: new Date().getTime() }
             );
             //mailer function
-            mailer(finduser, otp);
+            mailer(finduser, otp,"otp");
             res.status(200).send({
               success: true,
               msg: "OTP successfully sent your Mail ID",

@@ -28,10 +28,15 @@ const usercridential = mongoose.Schema({
     type: String,
     default: "VIEW",
     trim: true,
-    enum: ["VIEW", "ADMIN",]
+    enum: ["VIEW", "ADMIN"]
+  },
+  mailhash: {
+    type: String,
+    trim: true,
+    default: null
   }
 });
 
 mongoose.models = {};
 const usercridentials = mongoose.model("usercridentials", usercridential);
-module.exports =  usercridentials;
+module.exports = usercridentials;

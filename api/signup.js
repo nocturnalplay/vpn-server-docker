@@ -18,7 +18,13 @@ async function Handler(req, res) {
     await usercridentials.create({ userid: d._id });
     res.status(200).send({ success: true, msg: "user added successfully" });
   } catch (error) {
-    res.status(400).send({ success: false, msg: error.message });
+    let msg = error.message;
+
+    if (msg.search("duplicate key") > 0) {
+      res.status(400).send({ success: false, msg: "values you entered already exist" });
+    } else {
+      res.status(400).send({ success: false, msg });
+    }
   }
 }
 

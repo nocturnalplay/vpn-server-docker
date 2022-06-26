@@ -4,6 +4,8 @@ const Signin = require("../../api/signin");
 const Signup = require("../../api/signup");
 const otpverify = require("../../api/otpverify");
 const resendotp = require("../../api/resendotp");
+const changepassword = require("../../api/changepassword");
+const forgotpassword = require("../../api/forgotpassword");
 const userCredential = require("../../models/usercrdentialmodel");
 
 // Home page route.
@@ -24,5 +26,6 @@ router.post("/signin", Signin);
 router.post("/signup", Signup);
 router.post("/otpverify", otpverify);
 router.post("/resendotp", resendotp);
-
+router.post("/forgotpassword", forgotpassword);
+router.post("/changepassword", changepassword);
 module.exports = router;

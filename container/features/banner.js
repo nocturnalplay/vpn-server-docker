@@ -10,17 +10,15 @@ const banner = () => {
 //congrates banner
 const ConBanner = (username, password) => {
   const banner = "figlet -t -c Account created | lolcat";
-  return `${execSync(banner).toString()}
-    ${"[*]connect your machine through"} ${"[SSH]"}
-    ---------------------
-      ${"username"}:${username}
-      ${"password"}:${password}
-    ---------------------
-    <--->
-    ${"[*]easy connect sudo apt install sshpass"}
-    ${"[*]sshpass -p <password> ssh <username>@<host>"}
-    <--->
-  `;
+  return `${"[*]connect your machine through"} ${"[SSH]"}
+---------------------
+${"username"}:${username}
+${"password"}:${password}
+---------------------
+<--->
+${"[*]easy connect sudo apt install sshpass"}
+${"[*]sshpass -p password ssh username@host"}
+<--->`;
 };
 
 module.exports = { ConBanner, banner };

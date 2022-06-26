@@ -4,25 +4,31 @@ const usercridentials = require("../models/usercrdentialmodel");
 const mailer = require("../middleware/mailer");
 
 const { createHmac } = require("crypto");
-const secret = "#@!$";
+const secret = "(*)";
 
 async function Handler(req, res) {
   try {
-    const { id } = req.query;
-    const finduser = await UserModel.findById({
-      _id: mongoose.Types.ObjectId(id)
+    const { email } = req.body;
+    const finduser = await UserModel.findOne({
+      email
     });
     if (finduser) {
-      const otp = Math.floor(Math.random() * 899999 + 100000);
+      const hash = createHmac("sha512", secret)
+        .update(`${finduser._id.toString()}.${new Date().getTime()}`)
+        .digest("hex");
       const d = await usercridentials.findOneAndUpdate(
         { userid: finduser._id },
-        { otp, otpcreatedtime: new Date().getTime() }
+        { mailhash: hash }
       );
       //mailer function
-      mailer(finduser, otp, "otp");
+      mailer(
+        finduser,
+        `${process.env.CLIENT}/changepassword/${hash}`,
+        "password"
+      );
       res.status(200).send({
         success: true,
-        msg: "OTP successfully sent your Mail ID",
+        msg: "Mail has been send to your mailid. verify it",
         id: finduser._id
       });
     } else {

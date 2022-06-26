@@ -10,6 +10,7 @@ const usercredential = require("./models/usercrdentialmodel");
 const VPNModel = require("./models/uservpnmodel");
 const UserModel = require("./models/usermodel");
 const tokenfilter = require("./components/tokenfilter");
+const SEND = require("./components/socketsend");
 
 const PORT = process.env.PORT || 9000;
 const app = express();
@@ -18,7 +19,7 @@ const wss = new Websocket.Server({ noServer: true });
 
 //middleware configuration setup
 dotenv.config();
-app.use(cors({}));
+app.use(cors({ credentials: true, origin: "http://192.168.1.7:3000" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -56,7 +57,7 @@ server.on("upgrade", async (request, socket, head) => {
 //websocket make connection after Authorizied
 wss.on("connection", (ws, req) => {
   console.log("getting started process two");
-  ws.send("This is webSocket server");
+  ws.send(SEND("connected", "[*]Connection Alive"));
 
   //When client send somthing to server on messgae will happen
   ws.on("message", async (msg) => {
@@ -83,23 +84,27 @@ wss.on("connection", (ws, req) => {
           });
           //On Thread close User docker set has been update to current use
           container.on("close", async (c) => {
-            const docker_ip = execSync(
-              `docker inspect ${GetUser.username} | grep IPAddress | grep 169.254 | awk '{print $2}'`
-            )
-              .toString()
-              .split('"')
-              .filter((a) => a);
-            const vpn_user_update = await VPNModel.findOneAndUpdate(
-              { userid },
-              {
-                $set: {
-                  docker_ip: docker_ip[0],
-                  sshusername: GetUser.username,
-                  sshpassword: `${GetUser.username}@321`
+            try {
+              const docker_ip = execSync(
+                `docker inspect ${GetUser.username} | grep IPAddress | grep ${process.env.IP} | awk '{print $2}'`
+              )
+                .toString()
+                .split('"')
+                .filter((a) => a);
+              const vpn_user_update = await VPNModel.findOneAndUpdate(
+                { userid },
+                {
+                  $set: {
+                    docker_ip: docker_ip[0],
+                    sshusername: GetUser.username,
+                    sshpassword: `${GetUser.username}@321`
+                  }
                 }
-              }
-            );
-            console.log("process end", c);
+              );
+              console.log("process end", c);
+            } catch (error) {
+              console.log(error.message);
+            }
           });
         } // or else user doesn't have VPN set this stuff will happen
         else {

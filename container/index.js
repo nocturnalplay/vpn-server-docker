@@ -4,8 +4,9 @@ const commander = require("commander");
 const chalk = require("chalk");
 const fs = require("fs");
 const clr = require("./features/color.js");
-const { banner, ConBanner } = require("./features/banner.js");
+const { banner, ConBanner } = require("./features/banner");
 const { fork, spawn } = require("child_process");
+const SEND = require("../components/socketsend");
 let nonError = true;
 
 //Global variable
@@ -21,7 +22,7 @@ process.on("message", (data) => {
   if (username && password) {
     try {
       //docker ysage image write process starts
-      process.send(banner());
+      process.send(SEND("running", "[*]Welcome to youngstorage cloud service"));
       //Dockerfile creation process then Manager will do all the stuff
       CreateDockerFile(username, password);
     } catch (error) {
@@ -48,7 +49,9 @@ function CreateDockerFile(username, password) {
 
   try {
     fs.writeFileSync("./container/Dockerfile", Dockerimage);
-    process.send("[*]Dockerfile have been created successfully");
+    process.send(
+      SEND("running", "[*]Dockerfile have been created successfully")
+    );
     //After created DockerFile Manager will do all stuff
     DockerManager(username);
   } catch (error) {
@@ -58,7 +61,7 @@ function CreateDockerFile(username, password) {
 
 //docker build function
 function DockerManager(username) {
-  process.send("[*]Docker build started...");
+  process.send(SEND("running", "[*]Docker build started..."));
   //docker build start
   const build = spawn(`docker`, [
     "build",
@@ -74,7 +77,7 @@ function DockerManager(username) {
   build.stderr.on("data", (msg) => process.exit(msg));
   //spawn executing after completion
   build.stdout.on("end", () => {
-    process.send("[*]DockerFile build successfully");
+    process.send(SEND("running", "[*]DockerFile build successfully"));
     //------------------------------
     //run the builted Docker container
     DockerRun(username);
@@ -84,7 +87,7 @@ function DockerManager(username) {
 
 //after completting the docker build this running the builted container will happen
 function DockerRun(username) {
-  process.send("[*]Docker Image Start running");
+  process.send(SEND("running", "[*]Docker Image Start running"));
 
   //docker run start
   const build = spawn(`docker`, [
@@ -103,13 +106,13 @@ function DockerRun(username) {
 
   //Docker run reliable output
   build.stdout.on("data", (msg) => {
-    process.send(`[*]Container Created ${msg}`);
+    process.send(SEND("running", `[*]Container Created ${msg}`));
     nonError = true;
   });
 
   //while Docker running if Error happens
   build.stderr.on("data", (msg) => {
-    process.send(`[*] ${msg}`);
+    process.send(SEND("running", `[*] ${msg}`));
     nonError = false;
     DockerRemoveImage(username);
   });
@@ -117,7 +120,8 @@ function DockerRun(username) {
   build.stdout.on("end", () => {
     if (nonError) {
       //finally created banner and ssh connection info
-      process.send(ConBanner(username, password));
+      process.send(SEND("running", ConBanner(username, password)));
+      process.send(SEND("end", "[*] process completed"));
       process.exit();
     }
   });
@@ -130,7 +134,7 @@ function DockerRemoveImage(username) {
 
   //Docker building reliable output
   build.stdout.on("data", (msg) => {
-    process.send(`[*]${msg} \r\r[*]Container Removed`);
+    process.send(SEND("running", `[*]${msg} \r\r[*]Container Removed`));
   });
 
   //spawn executing after completion
