@@ -42,7 +42,7 @@ async function mailer(user, data, event) {
   // send mail to the client
   transporter.sendMail(mailOptions, function (error, info) {
     if (error) {
-      throw error.message;
+      console.log(error.message);
     } else {
       console.log("Email sent: " + info.response);
     }

@@ -19,7 +19,12 @@ const wss = new Websocket.Server({ noServer: true });
 
 //middleware configuration setup
 dotenv.config();
-app.use(cors({ credentials: true, origin: "http://192.168.1.7:3000" }));
+app.use(
+  cors({
+    credentials: true,
+    origin: ["http://192.168.1.7:3000", "http://117.253.176.3:3000"]
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
