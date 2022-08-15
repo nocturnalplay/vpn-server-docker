@@ -34,17 +34,29 @@ process.on("message", (data) => {
 function CreateDockerFile(username, password) {
   const Dockerimage = `FROM ubuntu:latest
   RUN apt update
-  RUN apt install openssh-server nano htop sudo figlet lolcat -y
+  RUN apt install -y openssh-server nano htop 
+  COPY sshd_config /etc/ssh/
+  RUN apt install -y sudo figlet lolcat 
+  ENV DEBIAN_FRONTEND noninteractive
+  RUN apt install -y ufw net-tools netcat curl apache2 
+  RUN apt install -y inetutils-ping php libapache2-mod-php 
+  RUN apt install -y iproute2 default-jre bc
+  RUN apt install -y build-essential git
   RUN service ssh start
-  RUN echo 'root:admin' | chpasswd
+  RUN echo 'root:admin' | chpasswd  
   RUN echo "clear" >> /etc/bash.bashrc
   RUN echo "figlet -t -c youngstorage | lolcat" >> /etc/bash.bashrc
+  RUN echo "ServerName localhost " >> /etc/apache2/apache2.conf   
   RUN echo "echo ''" >> /etc/bash.bashrc
-  RUN sudo adduser ${username} --gecos "" --disabled-password
-  RUN echo "${username}:${password}" | sudo chpasswd
+  RUN curl -fsSL https://code-server.dev/install.sh | sh
+  RUN adduser ${username} --gecos "" --disabled-password
+  RUN echo "${username}:${password}" | chpasswd
   RUN usermod -aG sudo ${username}
+  RUN chown -R ${username}:${username} /var/www/html
   RUN cd /home/${username} && echo "PS1='💻️ (\\[\\033[1;36m\\]\\u@\\h\\[\\033[0m\\]) \\[\\033[1;34m\\]\\w\\[\\033[0;35m\\] \\[\\033[1;36m\\]# \\[\\033[0m\\]'" >> .bashrc
-  CMD ["/usr/sbin/sshd","-D"]
+  COPY code_server.sh /
+  COPY sshd_config /etc/ssh/
+  CMD ["./code_server.sh","${username}","${password}"]
   `;
 
   try {
@@ -65,6 +77,7 @@ function DockerManager(username) {
   //docker build start
   const build = spawn(`docker`, [
     "build",
+    //"--no-cache",
     "-t",
     `${username}:latest`,
     `./container/.`
@@ -99,6 +112,8 @@ function DockerRun(username) {
     "-d",
     "-v",
     `${username}:/home/${username}`,
+    "-v",
+    `${username}_web:/var/www/html`,
     "--network",
     "docker-vpn",
     `${username}`

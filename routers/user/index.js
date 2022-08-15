@@ -6,7 +6,7 @@ const tokenfilter = require("../../components/tokenfilter");
 
 router.get("/", async (req, res) => {
   const token = tokenfilter(req.headers.cookie);
-  console.log(token);
+  console.log("token:",token);
   const validuser = await userCredential.findOne({ token });
   if (validuser) {
     const vuser = await vpnuser.findOne({ userid: validuser.userid });

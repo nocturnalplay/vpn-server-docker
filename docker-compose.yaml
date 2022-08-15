@@ -12,10 +12,10 @@ services:
     - TZ=Europe/London
     - SERVERURL=auto
     - SERVERPORT=51820
-    - PEERS=2
+    - PEERS=22
     - PEERDNS=auto
     - INTERNAL_SUBNET=172.16.0.0
-    - ALLOWEDIPS=169.254.0.0/32
+    - ALLOWEDIPS=169.254.0.0/16
     - PERSISTENT_KEEPALIVE=5
     volumes:
     - ./config:/config
@@ -25,21 +25,6 @@ services:
     sysctls:
     - net.ipv4.conf.all.src_valid_mark=1
     restart: always
-  mongo:
-    image: mongo
-    container_name: mongodb
-    restart: always
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root123
-      MONGO_INITDB_DATABASE: youngstorage
-      MONGO_USERNAME: admin
-      MONGO_PASSWORD: admin123
-    ports:
-    - 27017:27017
-    volumes:
-    - ./data:/data/db
-    - ./mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
 networks:
   default:
     name: docker-vpn
