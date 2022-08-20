@@ -1,5 +1,15 @@
 #! /bin/sh
 nohup /usr/sbin/sshd -D &
+rm -rf /var/www/html/*
+mkdir /home/$1/htdocs
+echo "<h1>it's workig</h1>" > /home/$1/htdocs/index.html
+ln -s /home/$1/htdocs/* /var/www/html
+cd /home
+chmod 750 $1
+adduser www-data $1
+echo "Options +FollowSymLinks +SymLinksIfOwnerMatch" > /home/$1/htdocs/.htaccess
+cd /home/$1/htdocs
+chmod o+x *
 cd /home/$1
 mkdir .config
 mkdir .config/code-server
